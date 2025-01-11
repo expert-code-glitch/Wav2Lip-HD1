@@ -289,55 +289,59 @@ def main():
         pred_out = cv2.VideoWriter("temp/pred.avi", cv2.VideoWriter_fourcc(*'DIVX'), fps, (96, 96))
 
     abs_idx = 0
-    for i, (img_batch, mel_batch, frames, coords) in enumerate(tqdm(gen, 
-                                            total=int(np.ceil(float(len(mel_chunks))/batch_size)))):
-        if i == 0:
-            print("Loading segmentation network...")
-            seg_net = init_parser(args.segmentation_path)
+    try:
+        for i, (img_batch, mel_batch, frames, coords) in enumerate(tqdm(gen, 
+                                                total=int(np.ceil(float(len(mel_chunks))/batch_size)))):
+            print(i)
+            if i == 0:
+                print("Loading segmentation network...")
+                seg_net = init_parser(args.segmentation_path)
 
-            print("Loading super resolution model...")
-            sr_net = init_sr_model(args.sr_path)
+                print("Loading super resolution model...")
+                sr_net = init_sr_model(args.sr_path)
 
-            model = load_model(args.checkpoint_path)
-            print ("Model loaded")
+                model = load_model(args.checkpoint_path)
+                print ("Model loaded")
 
-            frame_h, frame_w = next(read_frames()).shape[:-1]
-            out = cv2.VideoWriter('temp/result.avi', 
-                                    cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_w, frame_h))
-        print("1")
-        img_batch = torch.FloatTensor(np.transpose(img_batch, (0, 3, 1, 2))).to(device)
-        mel_batch = torch.FloatTensor(np.transpose(mel_batch, (0, 3, 1, 2))).to(device)
+                frame_h, frame_w = next(read_frames()).shape[:-1]
+                out = cv2.VideoWriter('temp/result.avi', 
+                                        cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_w, frame_h))
+            print("1")
+            img_batch = torch.FloatTensor(np.transpose(img_batch, (0, 3, 1, 2))).to(device)
+            mel_batch = torch.FloatTensor(np.transpose(mel_batch, (0, 3, 1, 2))).to(device)
 
-        with torch.no_grad():
-            pred = model(mel_batch, img_batch)
+            with torch.no_grad():
+                pred = model(mel_batch, img_batch)
 
-        pred = pred.cpu().numpy().transpose(0, 2, 3, 1) * 255.
-        
-        for p, f, c in zip(pred, frames, coords):
-            y1, y2, x1, x2 = c
-
-            if args.save_frames:
-                print("saving frames or video...")
-                if args.save_as_video:
-                    print("videos...")
-                    pred_out.write(p.astype(np.uint8))
-                    gt_out.write(cv2.resize(f[y1:y2, x1:x2], (384, 384)))
-                else:
-                    print("frames...")
-                    print(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png")
-                    cv2.imwrite(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png", f[y1:y2, x1:x2])
-                    cv2.imwrite(f"{args.pred_path}/{args.image_prefix}{abs_idx}.png", p)
-                    abs_idx += 1
-
-            if not args.no_sr:
-                p = enhance(sr_net, p)
-            p = cv2.resize(p.astype(np.uint8), (x2 - x1, y2 - y1))
+            pred = pred.cpu().numpy().transpose(0, 2, 3, 1) * 255.
             
-            if not args.no_segmentation:
-                p = swap_regions(f[y1:y2, x1:x2], p, seg_net)
+            for p, f, c in zip(pred, frames, coords):
+                y1, y2, x1, x2 = c
 
-            f[y1:y2, x1:x2] = p
-            out.write(f)
+                if args.save_frames:
+                    print("saving frames or video...")
+                    if args.save_as_video:
+                        print("videos...")
+                        pred_out.write(p.astype(np.uint8))
+                        gt_out.write(cv2.resize(f[y1:y2, x1:x2], (384, 384)))
+                    else:
+                        print("frames...")
+                        print(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png")
+                        cv2.imwrite(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png", f[y1:y2, x1:x2])
+                        cv2.imwrite(f"{args.pred_path}/{args.image_prefix}{abs_idx}.png", p)
+                        abs_idx += 1
+
+                if not args.no_sr:
+                    p = enhance(sr_net, p)
+                p = cv2.resize(p.astype(np.uint8), (x2 - x1, y2 - y1))
+                
+                if not args.no_segmentation:
+                    p = swap_regions(f[y1:y2, x1:x2], p, seg_net)
+
+                f[y1:y2, x1:x2] = p
+                out.write(f)
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     out.release()
 
