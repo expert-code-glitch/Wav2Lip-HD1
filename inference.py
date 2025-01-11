@@ -140,6 +140,7 @@ def face_detect(images):
     return results 
 
 def datagen(mels):
+    print('start datagen')
     img_batch, mel_batch, frame_batch, coords_batch = [], [], [], []
 
     reader = read_frames()
@@ -209,6 +210,8 @@ def load_model(path):
     return model.eval()
 
 def read_frames():
+
+    print("start read_frames")
     if args.face.split('.')[1] in ['jpg', 'png', 'jpeg']:
         face = cv2.imread(args.face)
         while 1:
@@ -283,12 +286,14 @@ def main():
     batch_size = args.wav2lip_batch_size
     print("batch_size:", batch_size)
     gen = datagen(mel_chunks)
-
+    print("gen", gen)
     if args.save_as_video:
         gt_out = cv2.VideoWriter("temp/gt.avi", cv2.VideoWriter_fourcc(*'DIVX'), fps, (384, 384))
         pred_out = cv2.VideoWriter("temp/pred.avi", cv2.VideoWriter_fourcc(*'DIVX'), fps, (96, 96))
 
     abs_idx = 0
+    if len(mel_chunks) == 0:
+        raise ValueError("No mel chunks available for processing.")
     try:
         print("Hello")
         for i, (img_batch, mel_batch, frames, coords) in enumerate(tqdm(gen, 
@@ -341,6 +346,7 @@ def main():
 
                 f[y1:y2, x1:x2] = p
                 out.write(f)
+
     except Exception as e:
         print(f"An error occurred: {e}")
 
