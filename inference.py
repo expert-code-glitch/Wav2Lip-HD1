@@ -290,9 +290,10 @@ def main():
 
     abs_idx = 0
     try:
+        print("Hello")
         for i, (img_batch, mel_batch, frames, coords) in enumerate(tqdm(gen, 
                                                 total=int(np.ceil(float(len(mel_chunks))/batch_size)))):
-            print(i)
+            print("i",i)
             if i == 0:
                 print("Loading segmentation network...")
                 seg_net = init_parser(args.segmentation_path)
