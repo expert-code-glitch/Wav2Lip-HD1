@@ -279,8 +279,9 @@ def main():
         i += 1
 
     print("Length of mel chunks: {}".format(len(mel_chunks)))
-
+    print("run")
     batch_size = args.wav2lip_batch_size
+    print("batch_size:", batch_size)
     gen = datagen(mel_chunks)
 
     if args.save_as_video:
@@ -303,7 +304,7 @@ def main():
             frame_h, frame_w = next(read_frames()).shape[:-1]
             out = cv2.VideoWriter('temp/result.avi', 
                                     cv2.VideoWriter_fourcc(*'DIVX'), fps, (frame_w, frame_h))
-
+        print("1")
         img_batch = torch.FloatTensor(np.transpose(img_batch, (0, 3, 1, 2))).to(device)
         mel_batch = torch.FloatTensor(np.transpose(mel_batch, (0, 3, 1, 2))).to(device)
 
