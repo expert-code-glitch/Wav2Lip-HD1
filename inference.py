@@ -140,7 +140,10 @@ def face_detect(images):
     return results 
 
 def datagen(mels):
-    print('start datagen')
+    if not mels:  # Check if mels is empty
+        print("No mel chunks to process.")
+        return  # This will prevent the print statement from executing
+    print("Starting data generation...")
     img_batch, mel_batch, frame_batch, coords_batch = [], [], [], []
 
     reader = read_frames()
@@ -285,7 +288,10 @@ def main():
     print("run")
     batch_size = args.wav2lip_batch_size
     print("batch_size:", batch_size)
-    gen = datagen(mel_chunks)
+    if len(mel_chunks) == 0:
+        print("No mel chunks available for processing.")
+    else:
+        gen = datagen(mel_chunks)
     print("gen", gen)
     if args.save_as_video:
         gt_out = cv2.VideoWriter("temp/gt.avi", cv2.VideoWriter_fourcc(*'DIVX'), fps, (384, 384))
