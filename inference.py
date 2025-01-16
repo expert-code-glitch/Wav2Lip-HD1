@@ -285,6 +285,7 @@ def main():
         i += 1
 
     print("Length of mel chunks: {}".format(len(mel_chunks)))
+    total_count = len(mel_chunks)
     print("run")
     batch_size = args.wav2lip_batch_size
     print("batch_size:", batch_size)
@@ -339,6 +340,7 @@ def main():
                     else:
                         print("frames...")
                         print(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png")
+                        print(f"{abs_idx/total_count*100}% done")
                         cv2.imwrite(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png", f[y1:y2, x1:x2])
                         cv2.imwrite(f"{args.pred_path}/{args.image_prefix}{abs_idx}.png", p)
                         abs_idx += 1
