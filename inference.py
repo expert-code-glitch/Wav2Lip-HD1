@@ -340,7 +340,7 @@ def main():
                     else:
                         print("frames...")
                         print(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png")
-                        print(f"{abs_idx/total_count*100}% done")
+                        print(f"{args.task_id} : {abs_idx/total_count*100}% done")
                         cv2.imwrite(f"{args.gt_path}/{args.image_prefix}{abs_idx}.png", f[y1:y2, x1:x2])
                         cv2.imwrite(f"{args.pred_path}/{args.image_prefix}{abs_idx}.png", p)
                         abs_idx += 1
